@@ -1,0 +1,24 @@
+{
+  "name": "php",
+  "detect": ["composer.json", "artisan"],
+  "commands": {
+    "test": "php artisan test --filter={filter}",
+    "lint": null,
+    "formatFile": null,
+    "typecheck": null,
+    "preCommit": null
+  },
+  "commandHints": {
+    "test": ["php artisan test --filter={filter}", "vendor/bin/phpunit {files}"],
+    "formatFile": ["vendor/bin/pint {file}", "vendor/bin/php-cs-fixer fix {file}"],
+    "typecheck": ["vendor/bin/phpstan analyse {files}"]
+  },
+  "config": {
+    "secret": [".env", ".env.*", "auth.json", "storage/oauth-*.key", "storage/*.key", "*.p8"],
+    "templates": [".env.example"],
+    "settingsCode": ["config/*.php (the only place env() is called)", "config('file.key') everywhere else"],
+    "keyRule": "Add the key to .env.example in its group; read it with env() only inside a config/*.php file and use config('file.key') in code (env() returns null once config is cached)."
+  },
+  "migrations": ["database/migrations/"],
+  "dependencies": ["composer.json", "composer.lock", "package.json", "package-lock.json"]
+}

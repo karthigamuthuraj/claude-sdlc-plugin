@@ -1,0 +1,38 @@
+{
+  "name": "dotnet",
+  "detect": [
+    "*.csproj",
+    "*.sln"
+  ],
+  "commands": {
+    "test": "dotnet test --filter {filter}",
+    "lint": null,
+    "formatFile": "dotnet format --include {file}",
+    "typecheck": null,
+    "preCommit": null
+  },
+  "commandHints": {},
+  "config": {
+    "secret": [
+      "secrets.json",
+      "appsettings.Production.json",
+      "appsettings.*.local.json"
+    ],
+    "templates": [
+      "appsettings.json",
+      "appsettings.Development.json"
+    ],
+    "settingsCode": [
+      "IOptions<T> / options classes bound in Program.cs"
+    ],
+    "keyRule": "Add the key with an empty or placeholder value to appsettings.json; real values come from user secrets or environment."
+  },
+  "migrations": [
+    "Migrations/"
+  ],
+  "dependencies": [
+    "*.csproj",
+    "Directory.Packages.props",
+    "packages.lock.json"
+  ]
+}

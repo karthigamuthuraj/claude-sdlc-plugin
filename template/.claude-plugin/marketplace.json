@@ -1,0 +1,7 @@
+{
+  "name": "{{SLUG}}-plugins",
+  "owner": { "name": "{{PROJECT_NAME}} engineering" },
+  "plugins": [
+    { "name": "{{EDITION_NAME}}", "source": "./", "description": "{{PROJECT_NAME}} SDLC plugin (generated from sdlc-core {{CORE_VERSION}})" }
+  ]
+}

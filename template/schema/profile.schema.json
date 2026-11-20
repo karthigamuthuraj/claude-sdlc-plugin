@@ -1,0 +1,463 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "sdlc project profile (.sdlc/project.json)",
+  "type": "object",
+  "required": [
+    "project",
+    "tracker",
+    "repos",
+    "branching"
+  ],
+  "properties": {
+    "project": {
+      "type": "object",
+      "required": [
+        "name",
+        "slug"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "slug": {
+          "type": "string"
+        }
+      }
+    },
+    "requires": {
+      "type": "string",
+      "description": "sdlc-core version range, e.g. >=0.1 <1"
+    },
+    "ticketDir": {
+      "type": "string",
+      "default": ".sdlc/tickets"
+    },
+    "worktreeDir": {
+      "type": "string",
+      "default": ".worktrees/{repo}-{name}"
+    },
+    "tracker": {
+      "type": "object",
+      "required": [
+        "type",
+        "site",
+        "projectKey",
+        "keyPattern"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "jira"
+          ]
+        },
+        "site": {
+          "type": "string"
+        },
+        "cloudId": {
+          "type": "string"
+        },
+        "projectKey": {
+          "type": "string"
+        },
+        "keyPattern": {
+          "type": "string"
+        },
+        "authEnv": {
+          "type": "object",
+          "properties": {
+            "email": {
+              "type": "string"
+            },
+            "token": {
+              "type": "string"
+            }
+          }
+        },
+        "statuses": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "transitionsBySkill": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "humanOnlyStatuses": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "commentPrefix": {
+          "type": "string"
+        },
+        "maxAttachmentMb": {
+          "type": "number"
+        },
+        "access": {
+          "enum": [
+            "connector",
+            "token"
+          ],
+          "default": "connector",
+          "description": "connector: all Jira reads and writes go through the connected Atlassian MCP tool (no token needed). token: also allow the jira CLI fallback with the developer's API token (authEnv)."
+        }
+      }
+    },
+    "gitHost": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "github",
+            "gitlab",
+            "bitbucket"
+          ]
+        },
+        "org": {
+          "type": "string"
+        }
+      }
+    },
+    "repos": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "path",
+          "stack",
+          "parent"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Relative to the workspace root; \"\" or \".\" when the workspace root is the repo"
+          },
+          "stack": {
+            "type": "string"
+          },
+          "area": {
+            "type": "string"
+          },
+          "parent": {
+            "type": "string"
+          },
+          "remote": {
+            "type": "string"
+          },
+          "commands": {
+            "type": "object",
+            "properties": {
+              "test": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "lint": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "formatFile": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "typecheck": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "preCommit": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "highRiskPaths": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "foreignPaths": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "subprojects": {
+            "type": "object",
+            "description": "Parts of the same Git repo with another stack (for example frontend/admin as node)",
+            "additionalProperties": {
+              "type": "object",
+              "required": [
+                "path",
+                "stack"
+              ],
+              "properties": {
+                "path": {
+                  "type": "string"
+                },
+                "stack": {
+                  "type": "string"
+                },
+                "commands": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "branching": {
+      "type": "object",
+      "required": [
+        "pattern",
+        "prefixByType",
+        "protected"
+      ],
+      "properties": {
+        "pattern": {
+          "type": "string"
+        },
+        "prefixByType": {
+          "type": "object"
+        },
+        "protected": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "slugMaxWords": {
+          "type": "integer"
+        }
+      }
+    },
+    "areas": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "roles": {
+      "type": "object",
+      "properties": {
+        "reviewers": {
+          "type": "object"
+        },
+        "qa": {
+          "type": "object"
+        },
+        "techLeads": {
+          "type": "array"
+        }
+      }
+    },
+    "risk": {
+      "type": "object",
+      "properties": {
+        "triggers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "trackRules": {
+      "type": "object"
+    },
+    "budgets": {
+      "type": "object"
+    },
+    "models": {
+      "type": "object"
+    },
+    "costBudget": {
+      "type": "object"
+    },
+    "protectedFiles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "templateExceptions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "blockedCommands": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "blockedGitSubcommands": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "redaction": {
+      "type": "object"
+    },
+    "logSources": {
+      "type": "object"
+    },
+    "qaEnvironmentRule": {
+      "enum": [
+        "merged",
+        "deployed",
+        "pr-branch"
+      ]
+    },
+    "commitMessagePattern": {
+      "type": "string",
+      "description": "Regex every commit message must match; default '^<KEY>:'"
+    },
+    "qaFormat": {
+      "enum": [
+        "jira",
+        "xray",
+        "zephyr",
+        "spreadsheet"
+      ]
+    },
+    "lifecycle": {
+      "type": "object",
+      "description": "Custom tracks and lifecycle steps; see CUSTOMIZING.md.",
+      "properties": {
+        "insert": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "after": {
+                "type": "string"
+              },
+              "before": {
+                "type": "string"
+              },
+              "steps": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "tracks": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "steps"
+            ]
+          }
+        },
+        "tracks": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "base": {
+                "enum": [
+                  "quick",
+                  "standard",
+                  "full",
+                  "bug",
+                  "hotfix"
+                ]
+              },
+              "description": {
+                "type": "string"
+              },
+              "steps": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "insert": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "after": {
+                      "type": "string"
+                    },
+                    "before": {
+                      "type": "string"
+                    },
+                    "steps": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "tracks": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "steps"
+                  ]
+                }
+              },
+              "remove": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "steps": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "required": {
+                "type": "boolean"
+              },
+              "jiraStatus": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "output": {
+                "type": "string"
+              },
+              "model": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

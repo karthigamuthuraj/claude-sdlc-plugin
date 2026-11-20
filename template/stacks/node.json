@@ -1,0 +1,56 @@
+{
+  "name": "node",
+  "detect": [
+    "package.json"
+  ],
+  "commands": {
+    "test": "npx vitest run {files}",
+    "lint": null,
+    "formatFile": null,
+    "typecheck": null,
+    "preCommit": null
+  },
+  "commandHints": {
+    "test": [
+      "npx vitest run {files}",
+      "npx jest {files}"
+    ],
+    "lint": [
+      "npx eslint {files}",
+      "npm run lint"
+    ],
+    "formatFile": [
+      "npx prettier --write {file}"
+    ],
+    "typecheck": [
+      "npx tsc --noEmit"
+    ]
+  },
+  "config": {
+    "secret": [
+      ".env",
+      ".env.local",
+      ".env.*.local",
+      ".env.production"
+    ],
+    "templates": [
+      ".env.example",
+      ".env.sample"
+    ],
+    "settingsCode": [
+      "config.ts / env.ts with a schema (for example zod)",
+      "next.config.js env block"
+    ],
+    "keyRule": "Only NEXT_PUBLIC_ (Next.js) or VITE_ (Vite) keys reach the browser; never put secrets in them. Add the key to .env.example and the env schema."
+  },
+  "migrations": [
+    "prisma/migrations/",
+    "migrations/"
+  ],
+  "dependencies": [
+    "package.json",
+    "package-lock.json",
+    "yarn.lock",
+    "pnpm-lock.yaml"
+  ]
+}

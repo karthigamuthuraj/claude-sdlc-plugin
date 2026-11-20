@@ -1,0 +1,50 @@
+{
+  "name": "mobile",
+  "detect": [
+    "build.gradle",
+    "*.xcodeproj",
+    "Podfile",
+    "pubspec.yaml"
+  ],
+  "commands": {
+    "test": null,
+    "lint": null,
+    "formatFile": null,
+    "typecheck": null,
+    "preCommit": null
+  },
+  "commandHints": {
+    "test": [
+      "./gradlew testDebugUnitTest",
+      "xcodebuild test",
+      "flutter test {files}"
+    ]
+  },
+  "config": {
+    "secret": [
+      "local.properties",
+      "google-services.json",
+      "GoogleService-Info.plist",
+      "*.keystore",
+      "*.jks",
+      "*.mobileprovision",
+      "*.p8"
+    ],
+    "templates": [
+      "*.example",
+      "Config.example.xcconfig"
+    ],
+    "settingsCode": [
+      "BuildConfig fields",
+      "xcconfig files"
+    ],
+    "keyRule": "Add placeholders to example files; signing keys and service files are never touched."
+  },
+  "migrations": [],
+  "dependencies": [
+    "build.gradle",
+    "Podfile",
+    "Podfile.lock",
+    "pubspec.yaml"
+  ]
+}

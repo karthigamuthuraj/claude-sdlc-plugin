@@ -1,0 +1,44 @@
+{
+  "name": "ruby",
+  "detect": [
+    "Gemfile"
+  ],
+  "commands": {
+    "test": "bundle exec rspec {files}",
+    "lint": null,
+    "formatFile": null,
+    "typecheck": null,
+    "preCommit": null
+  },
+  "commandHints": {
+    "lint": [
+      "bundle exec rubocop {files}"
+    ],
+    "test": [
+      "bundle exec rspec {files}",
+      "bin/rails test {files}"
+    ]
+  },
+  "config": {
+    "secret": [
+      "config/master.key",
+      "config/credentials/*.key",
+      ".env"
+    ],
+    "templates": [
+      ".env.example",
+      "config/*.yml.example"
+    ],
+    "settingsCode": [
+      "Rails.application.config / credentials lookups"
+    ],
+    "keyRule": "Never edit credentials; add placeholders to .env.example and ERB ENV lookups."
+  },
+  "migrations": [
+    "db/migrate/"
+  ],
+  "dependencies": [
+    "Gemfile",
+    "Gemfile.lock"
+  ]
+}

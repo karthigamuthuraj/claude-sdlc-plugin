@@ -1,0 +1,47 @@
+{
+  "$comment": "Example profile for a two-repo workspace (api + web). Copy to <workspace>/.sdlc/project.json and change every value; setup writes this file for you.",
+  "project": { "name": "Acme Portal", "slug": "acme-portal" },
+  "ticketDir": ".sdlc/tickets",
+  "worktreeDir": ".worktrees/{repo}-{name}",
+  "tracker": {
+    "type": "jira",
+    "site": "https://acme.atlassian.net",
+    "projectKey": "ACME",
+    "keyPattern": "^ACME-\\d+$",
+    "access": "connector",
+    "authEnv": { "email": "JIRA_EMAIL", "token": "JIRA_API_TOKEN" },
+    "statuses": { "todo": "To Do", "inProgress": "In Progress", "devComplete": "Dev Complete", "inQa": "In QA", "done": "Done" },
+    "transitionsBySkill": { "pickup": "In Progress", "handoff": "Dev Complete" },
+    "humanOnlyStatuses": ["In QA", "Done"],
+    "commentPrefix": "[acme-portal-sdlc]"
+  },
+  "gitHost": { "type": "github", "org": "acme" },
+  "repos": {
+    "api": {
+      "path": "api", "stack": "python", "area": "backend", "parent": "develop",
+      "commands": { "test": "python -m pytest {files}", "formatFile": "ruff format {file}" },
+      "highRiskPaths": ["migrations/**", "app/auth/**"]
+    },
+    "web": {
+      "path": "web", "stack": "node", "area": "frontend", "parent": "develop",
+      "commands": { "test": "npx vitest run {files}", "lint": "npx eslint {files}", "formatFile": "npx prettier --write {file}" }
+    }
+  },
+  "branching": {
+    "pattern": "{prefix}/{key_lower}-{slug}",
+    "prefixByType": { "Story": "feature", "Task": "feature", "Bug": "bug-fix" },
+    "slugMaxWords": 5,
+    "protected": ["main", "develop", "release/*"]
+  },
+  "commitMessagePattern": "^ACME-\\d+: ",
+  "protectedFiles": ["secrets/**", "*.pem"],
+  "templateExceptions": [".env.example"],
+  "blockedCommands": ["alembic upgrade", "alembic downgrade", "npm publish", "docker compose -f .*prod"],
+  "redaction": { "allowEmailDomains": ["acme.example"] },
+  "roles": { "reviewers": {}, "qa": {}, "techLeads": [] },
+  "lifecycle": {
+    "insert": [{ "after": "verify", "steps": ["security-scan"], "tracks": ["standard", "full", "bug"] }],
+    "tracks": { "spike": { "base": "quick", "description": "time-boxed investigation", "remove": ["pr", "handoff", "review"] } },
+    "steps": { "security-scan": { "required": true, "output": "security-scan.md" } }
+  }
+}

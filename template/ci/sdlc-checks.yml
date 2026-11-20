@@ -1,0 +1,25 @@
+# Copy to .github/workflows/sdlc-checks.yml in each repo (setup does this).
+# Repeats the local git-hook checks because local hooks can be bypassed.
+name: sdlc-checks
+on: [pull_request]
+permissions: { contents: read }
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      # Keep this pattern in line with project.json -> commitMessagePattern.
+      - name: Commit messages start with the ticket key
+        run: |
+          git log --format=%s origin/${{ github.base_ref }}..HEAD | while read -r s; do
+            echo "$s" | grep -Eq '^[A-Z][A-Z0-9]+-[0-9]+ ?:' || { echo "::error::commit message without ticket key: $s"; exit 1; }
+          done
+      - name: No protected files committed
+        run: |
+          if git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '(^|/)(\.env(\..+)?|.*\.(pem|key|p12|pfx|jks|tfvars)|id_rsa.*|secrets\.(json|ya?ml))$' | grep -vE '\.env\.(example|sample|template)$'; then
+            echo "::error::protected file in the PR"; exit 1; fi
+      - name: Secret scan
+        uses: gitleaks/gitleaks-action@v2
+        env: { GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}" }
+      # Project-specific: add lint and changed-file tests for this repo's stack below.

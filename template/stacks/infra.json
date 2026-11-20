@@ -1,0 +1,45 @@
+{
+  "name": "infra",
+  "detect": [
+    "main.tf",
+    "Chart.yaml",
+    "kustomization.yaml"
+  ],
+  "commands": {
+    "test": null,
+    "lint": null,
+    "formatFile": "terraform fmt {file}",
+    "typecheck": "terraform validate",
+    "preCommit": null
+  },
+  "commandHints": {
+    "lint": [
+      "tflint",
+      "helm lint"
+    ]
+  },
+  "config": {
+    "secret": [
+      "*.tfvars",
+      "terraform.tfstate*",
+      ".terraform/**",
+      "*secret*.yaml",
+      "*secret*.yml"
+    ],
+    "templates": [
+      "variables.tf",
+      "values.yaml",
+      "*.tfvars.example"
+    ],
+    "settingsCode": [
+      "variables.tf",
+      "values.yaml"
+    ],
+    "keyRule": "Add variables with descriptions and no secret defaults; plan/apply is human-only."
+  },
+  "migrations": [],
+  "dependencies": [
+    ".terraform.lock.hcl",
+    "Chart.yaml"
+  ]
+}

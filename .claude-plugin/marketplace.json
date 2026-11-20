@@ -1,0 +1,7 @@
+{
+  "name": "concertidc-sdlc",
+  "owner": { "name": "ConcertIDC engineering" },
+  "plugins": [
+    { "name": "sdlc-core", "source": "./", "description": "Generator for per-project SDLC plugins" }
+  ]
+}

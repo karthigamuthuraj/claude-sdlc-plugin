@@ -1,0 +1,13 @@
+{
+  "name": "sdlc-core",
+  "version": "0.3.0",
+  "description": "Generator for per-project SDLC plugins (<project>-sdlc). Run /sdlc-core:new-project to create or upgrade a project edition.",
+  "author": {
+    "name": "ConcertIDC engineering"
+  },
+  "keywords": [
+    "sdlc",
+    "generator",
+    "plugin"
+  ]
+}

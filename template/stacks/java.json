@@ -1,0 +1,52 @@
+{
+  "name": "java",
+  "detect": [
+    "pom.xml",
+    "build.gradle",
+    "build.gradle.kts"
+  ],
+  "commands": {
+    "test": "./mvnw -q test -Dtest={classes}",
+    "lint": null,
+    "formatFile": null,
+    "typecheck": null,
+    "preCommit": null
+  },
+  "commandHints": {
+    "test": [
+      "./mvnw -q test -Dtest={classes}",
+      "./gradlew test --tests {classes}"
+    ],
+    "formatFile": [
+      "./mvnw spotless:apply"
+    ]
+  },
+  "config": {
+    "secret": [
+      "application-prod.yml",
+      "application-prod.properties",
+      "*.jks",
+      "*.p12",
+      "*.keystore"
+    ],
+    "templates": [
+      "application.yml",
+      "application.properties",
+      "application-dev.yml"
+    ],
+    "settingsCode": [
+      "@ConfigurationProperties classes",
+      "@Value fields"
+    ],
+    "keyRule": "Use ${ENV_VAR:default} placeholders in application.yml; bind through a @ConfigurationProperties class."
+  },
+  "migrations": [
+    "src/main/resources/db/migration/",
+    "db/changelog/"
+  ],
+  "dependencies": [
+    "pom.xml",
+    "build.gradle",
+    "build.gradle.kts"
+  ]
+}

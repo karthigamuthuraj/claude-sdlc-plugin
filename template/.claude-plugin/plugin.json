@@ -1,0 +1,7 @@
+{
+  "name": "{{EDITION_NAME}}",
+  "version": "{{EDITION_VERSION}}",
+  "description": "{{PROJECT_NAME}} SDLC plugin for Claude Code: one Jira ticket = one controlled, traceable delivery (pickup to QA handover). Generated from sdlc-core {{CORE_VERSION}}; do not edit by hand.",
+  "author": { "name": "{{PROJECT_NAME}} engineering" },
+  "keywords": ["sdlc", "jira", "workflow", "{{SLUG}}"]
+}

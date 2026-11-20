@@ -1,0 +1,41 @@
+{
+  "name": "go",
+  "detect": [
+    "go.mod"
+  ],
+  "commands": {
+    "test": "go test {packages}",
+    "lint": null,
+    "formatFile": "gofmt -w {file}",
+    "typecheck": "go vet {packages}",
+    "preCommit": null
+  },
+  "commandHints": {
+    "lint": [
+      "golangci-lint run {packages}"
+    ]
+  },
+  "config": {
+    "secret": [
+      ".env",
+      "config.prod.yaml",
+      "config.prod.yml"
+    ],
+    "templates": [
+      "config.example.yaml",
+      ".env.example"
+    ],
+    "settingsCode": [
+      "config struct and loader (envconfig, viper)"
+    ],
+    "keyRule": "Add to the config struct with a default and to config.example.yaml."
+  },
+  "migrations": [
+    "migrations/",
+    "db/migrations/"
+  ],
+  "dependencies": [
+    "go.mod",
+    "go.sum"
+  ]
+}

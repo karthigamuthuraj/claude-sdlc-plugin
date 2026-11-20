@@ -1,0 +1,60 @@
+{
+  "name": "python",
+  "detect": [
+    "pyproject.toml",
+    "requirements.txt",
+    "setup.py",
+    "Pipfile"
+  ],
+  "commands": {
+    "test": "python -m pytest {files}",
+    "lint": null,
+    "formatFile": null,
+    "typecheck": null,
+    "preCommit": null
+  },
+  "commandHints": {
+    "lint": [
+      "ruff check {files}",
+      "flake8 {files}"
+    ],
+    "formatFile": [
+      "ruff format {file}",
+      "black {file}"
+    ],
+    "typecheck": [
+      "mypy {files}"
+    ]
+  },
+  "config": {
+    "secret": [
+      ".env",
+      ".env.*",
+      "*.secrets.toml",
+      ".secrets.toml",
+      "local_settings.py"
+    ],
+    "templates": [
+      ".env.example",
+      ".env.sample",
+      "settings.toml"
+    ],
+    "settingsCode": [
+      "Pydantic BaseSettings / pydantic-settings classes",
+      "Django settings.py",
+      "config.py modules reading os.environ"
+    ],
+    "keyRule": "Add the key to every template in its category group; read it through the settings class with a type and a default or a clear startup error."
+  },
+  "migrations": [
+    "alembic/",
+    "*/migrations/"
+  ],
+  "dependencies": [
+    "requirements*.txt",
+    "pyproject.toml",
+    "Pipfile",
+    "poetry.lock",
+    "uv.lock"
+  ]
+}

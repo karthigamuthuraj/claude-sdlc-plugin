@@ -1,0 +1,27 @@
+{
+  "$comment": "Defaults per skill. Families map to Claude Code aliases (opus, sonnet, haiku), so a model upgrade needs no change here. Projects override in project.json -> models.",
+  "skills": {
+    "new-project": { "model": "sonnet", "effort": "low" },
+    "setup":       { "model": "sonnet", "effort": "medium" },
+    "pickup":      { "model": "sonnet", "effort": "medium" },
+    "logs":        { "model": "sonnet", "effort": "medium" },
+    "rca":         { "model": "opus",   "effort": "high" },
+    "analyze":     { "model": "opus",   "effort": "high" },
+    "design":      { "model": "opus",   "effort": "high" },
+    "kickoff":     { "model": "opus",   "effort": "medium" },
+    "tasks":       { "model": "sonnet", "effort": "medium" },
+    "build":       { "model": "sonnet", "effort": "medium", "onRisk": "opus" },
+    "verify":      { "model": "sonnet", "effort": "medium", "onRisk": "opus" },
+    "commit":      { "model": "haiku",  "effort": "low" },
+    "pr":          { "model": "sonnet", "effort": "low" },
+    "handoff":     { "model": "sonnet", "effort": "medium" },
+    "review":      { "model": "opus",   "effort": "high" },
+    "resolve":     { "model": "opus",   "effort": "high" },
+    "qa-handover": { "model": "sonnet", "effort": "medium" },
+    "sync":        { "model": "haiku",  "effort": "low" }
+  },
+  "reviewerPass": { "model": "opus", "effort": "high" },
+  "criticPass":   { "model": "opus", "effort": "high" },
+  "escalation": { "afterFailedAttempts": 2, "order": ["haiku", "sonnet", "opus"] },
+  "costGuard": { "warnAt": 0.8, "stopAt": 1.0 }
+}
