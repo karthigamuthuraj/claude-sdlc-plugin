@@ -3,6 +3,7 @@
   "skills": {
     "new-project": { "model": "sonnet", "effort": "low" },
     "setup":       { "model": "sonnet", "effort": "medium" },
+    "create-ticket": { "model": "sonnet", "effort": "medium" },
     "pickup":      { "model": "sonnet", "effort": "medium" },
     "logs":        { "model": "sonnet", "effort": "medium" },
     "rca":         { "model": "opus",   "effort": "high" },

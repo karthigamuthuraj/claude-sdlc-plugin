@@ -4,7 +4,7 @@ A Claude Code plugin that runs a developer's software delivery lifecycle on one 
 
 `sdlc-core` is a **generator**. Each project creates its own plugin, called an **edition**, named after the project: `acme-portal-sdlc`, with commands like `/acme-portal-sdlc:pickup ACME-123`. Project settings live in the project's `.sdlc/` folder.
 
-- 18 lifecycle skills plus `new-project`, each with a set model and reasoning effort
+- 19 skills (the lifecycle ones plus `create-ticket`) plus `new-project`, each with a set model and reasoning effort
 - 5 built-in tracks (quick, standard, full, bug, hotfix) and project-defined tracks and steps
 - Approvals typed by people, bound to document versions and staged changes
 - Hooks that block secret files, unsafe git commands, merges and human-only Jira statuses
@@ -161,6 +161,19 @@ Budgets are maximums; a document is presented as soon as no Blocker or Critical 
 
 All Jira reads and writes go through the Atlassian MCP connector. Developers' statuses are set by skills when configured (`tracker.transitionsBySkill`, for example pickup to In Progress, handoff to Dev Complete). Statuses in `tracker.humanOnlyStatuses` (for example In QA, Done) are never set by Claude. Comments pass a redaction scan first; failed writes are queued in the ticket's `pending-jira/` folder and replayed by `sync`.
 
+**Creating tickets (`create-ticket`)** is configured in `project.json -> ticketCreation` (see `examples/acme-portal`); every key is optional:
+
+| Key | Purpose |
+|---|---|
+| `templateVersion` | Template folder under `templates/jira/` (default `v1`); never asked |
+| `sprint.ask` | Ask "current sprint or backlog" and show the active sprint's name (default `true`) |
+| `priorities.default`, `priorities.bySpace.<KEY>`, `priorities.hints` | The priority names offered (per team or space; empty means all Jira priorities) and the mapping from request hints such as `P1` |
+| `applications` | Your projects (any number), each with `urlKeywords` and `teams.backend` / `teams.frontend` / `teams.qa` people (a name, or `{name, email}`) |
+| `qa` | The QA team shared by every application |
+| `generalAssignee` | Optional person; adds a "General" option to the team question |
+
+There is no template-details question: the skill analyses your request and screenshots, writes a fuller problem description (only from what you gave it, with unknowns marked "To be confirmed"), shows it for your approval (an "Edit problem summary" option lets you shorten it, use your original words only, or type your own text) and adds it to the ticket after you approve; `description.elaborate: false` turns that off. The skill asks which application(s) (one or several), then which team(s) (Backend, Frontend, QA; multi-select), then the assignee from exactly the lists you selected: a multi-select when you ticked more than one application or more than one team, a single choice when you ticked one application and one team (with several people ticked it creates one parent ticket assigned to the general assignee and one sub-task per person, each assigned to that person; with one person ticked, one ticket). A person listed in several applications or teams is shown once (matched by name, email or Jira account, with a second name or initial when two people share a name). Without `applications`, it offers yourself, recent assignees or unassigned. Every list is plain JSON you can edit at any time to add or remove names.
+
 ## 5. Skills inventory
 
 Models are Claude Code aliases, so newer model versions need no change. Defaults are in `template/config/models.json`; projects override them in `project.json -> models`.
@@ -169,6 +182,7 @@ Models are Claude Code aliases, so newer model versions need no change. Defaults
 |---|---|---|---|---|---|
 | new-project (core) | Generate or upgrade a project edition | Sonnet | Low | None | None |
 | setup | Onboard the project: profile, steering, CLAUDE.md, git hooks, doctor | Sonnet | Medium | None | Reads project and statuses |
+| create-ticket | Create a Jira ticket from the template (space, type, configurable priority list, current sprint or backlog, application(s), backend/frontend/both, deduplicated developers; optional attachments) | Sonnet | Medium | Developer approves the draft | Creates the ticket; attachment |
 | pickup | Duplicate check, read the ticket, repos, risk, track, ticket context | Sonnet | Medium | Key matches the project pattern | Comment; In Progress |
 | logs | Read-only log analysis (bug, hotfix) | Sonnet | Medium | Track confirmed; read-only mode | Comment |
 | rca | Root cause with evidence; review loop | Opus | High | Track confirmed; read-only mode | Comment |
@@ -270,14 +284,15 @@ pickup, build, verify and commit cannot be removed from any track. Files under `
 ```
 .claude-plugin/          plugin.json (sdlc-core), marketplace.json (concertidc-sdlc)
 skills/new-project/      creates or upgrades a project edition
+skills/create-ticket/    /sdlc-core:create-ticket - runs template/skills/create-ticket without an edition
 generator/               build-edition.mjs, custom-README.md
 template/                everything an edition contains
   .claude-plugin/        edition plugin.json and marketplace.json
   .mcp.json              Atlassian, GitHub, Playwright MCP servers
-  skills/                18 lifecycle skills
+  skills/                19 skills (18 lifecycle + create-ticket)
   core/                  shared rules: lifecycle, context, approvals, review-loop, models, tracker-operations
   templates/             ticket, rca, requirements, brief, design, kickoff, tasks, verify-report,
-                         pr-summary, handoff, review, qa-handover, setup/*
+                         pr-summary, handoff, review, qa-handover, setup/*, jira/<version>/* (create-ticket)
   checklists/            review, ready, pr
   config/                safety.json, budgets.json, models.json
   stacks/                python, node, php, java, dotnet, go, ruby, mobile, infra

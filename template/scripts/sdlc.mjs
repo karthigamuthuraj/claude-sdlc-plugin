@@ -14,7 +14,7 @@ const die = (msg, code = 1) => { process.stderr.write(`sdlc: ${msg}\n`); process
 const out = (v) => console.log(typeof v === 'string' ? v : JSON.stringify(v, null, 2));
 
 const [cmd, ...args] = process.argv.slice(2);
-const NO_WS = ['branch-name-raw', 'stack-detect', 'help', undefined];
+const NO_WS = ['branch-name-raw', 'stack-detect', 'redact', 'help', undefined];
 const ws = findWorkspace();
 if (!ws && !NO_WS.includes(cmd)) die('no .sdlc/project.json found above this folder; run setup first', 2);
 const profile = ws ? loadProfile(ws) : null;

@@ -18,6 +18,9 @@ Use the connector's write tools (`addCommentToJiraIssue`, `transitionJiraIssue`,
 | Assign | `jira assign <KEY> "<email or name>"` (after the developer confirms the person) |
 | Worklog | `jira worklog <KEY> <seconds> <startedISO> <file.md>` (after the developer confirms the hours) |
 
+## Creating a ticket
+Only the `create-ticket` skill creates tickets (`createJiraIssue`), after the developer approves the draft. It needs no ticket context, so `sdlc tracker-done` is not called for it.
+
 ## Rules
 - Redact personal, patient and customer data and tokens before writing; `sdlc redact <file>` must say `clean`.
 - Never move a ticket to a human-only status, delete anything, or approve anything.

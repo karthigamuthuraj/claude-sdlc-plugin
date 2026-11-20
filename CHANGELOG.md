@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+- New `create-ticket` skill: creates a Jira ticket from the predefined template (`templates/jira/<version>/`), with select-only questions and approval of the draft before anything is created. Configured in `project.json -> ticketCreation` (all optional):
+  - priority list per team or space, with hints such as `P1`;
+  - current sprint or backlog, showing the active sprint's name;
+  - application(s), then backend, frontend, both or general, with developers de-duplicated across applications;
+  - optional attachments and a redaction scan.
+- Assignee question: multi-select when several applications or several teams (Backend, Frontend, QA, General) are ticked, single choice for one application and one team; with several people ticked, one parent ticket is created for the general assignee plus one sub-task per person, each assigned to that person (no "main assignee" question).
+- No more template-details question: the skill fills Problem and Environment itself, analyses the request and screenshots into a fuller problem description, and shows it for approval before the ticket is created (`description.elaborate`, default on). The approval question has an "Edit problem summary" option: shorter, original words only, or your own text.
+- Priority choices follow the configured list in its order (like Jira's dropdown); without a profile the list lives in `~/.claude/sdlc-core/ticket-creation.json`, editable at any time.
+- `/sdlc-core:create-ticket` runs the same skill from the core plugin, with no edition or profile needed (`claude --plugin-dir <this repo>`); `sdlc redact` now works without a workspace.
+
 ## 0.3.0
 
 - Customisable lifecycle: new tracks (based on a built-in track) and new steps inserted before/after any step, in `project.json -> lifecycle` or the edition's `custom/lifecycle.json`.

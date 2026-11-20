@@ -15,6 +15,21 @@
     "humanOnlyStatuses": ["In QA", "Done"],
     "commentPrefix": "[acme-portal-sdlc]"
   },
+  "ticketCreation": {
+    "templateVersion": "v1",
+    "sprint": { "ask": true },
+    "priorities": {
+      "default": ["Highest", "High", "Medium", "Low"],
+      "bySpace": { "ACME": ["Highest", "High", "Medium", "Low", "Lowest"] },
+      "hints": { "P1": "Highest", "P2": "High", "P3": "Medium", "P4": "Low" }
+    },
+    "generalAssignee": "Pat Lee",
+    "qa": ["Dana Fox", "Eli Wood"],
+    "applications": {
+      "Acme Portal": { "urlKeywords": ["acme-portal"], "teams": { "backend": ["Sam Cole"], "frontend": ["Alex Kim", { "name": "Jo Park", "email": "jo.park@acme.example" }] } },
+      "Acme Admin": { "urlKeywords": ["acme-admin"], "teams": { "backend": ["Sam Cole", "Riya Rao"], "frontend": ["Jo Park"] } }
+    }
+  },
   "gitHost": { "type": "github", "org": "acme" },
   "repos": {
     "api": {

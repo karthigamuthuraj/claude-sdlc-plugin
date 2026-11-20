@@ -107,6 +107,43 @@
         }
       }
     },
+    "ticketCreation": {
+      "type": "object",
+      "description": "Settings of the create-ticket skill; every key is optional.",
+      "properties": {
+        "templateVersion": { "type": "string", "default": "v1", "description": "Folder under templates/jira/; never asked at run time." },
+        "sprint": { "type": "object", "properties": { "ask": { "type": "boolean", "default": true } } },
+        "priorities": {
+          "type": "object",
+          "properties": {
+            "default": { "type": "array", "items": { "type": "string" }, "description": "Priority names to offer, in order. Empty or missing: all priorities Jira returns." },
+            "bySpace": { "type": "object", "additionalProperties": { "type": "array", "items": { "type": "string" } }, "description": "Priority names per Jira space key; overrides default." },
+            "hints": { "type": "object", "additionalProperties": { "type": "string" }, "description": "Request hint to priority name, e.g. P1 -> Highest." }
+          }
+        },
+        "generalAssignee": { "description": "Person added to the assignee list when General is ticked: a name, or {name, email}." },
+        "qa": { "type": "array", "description": "QA team shared by every application: names, or {name, email}." },
+        "applications": {
+          "type": "object",
+          "description": "The projects (applications) a ticket can belong to, any number, with their teams.",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "urlKeywords": { "type": "array", "items": { "type": "string" } },
+              "teams": {
+                "type": "object",
+                "properties": {
+                  "backend": { "type": "array" },
+                  "frontend": { "type": "array" },
+                  "qa": { "type": "array" }
+                },
+                "description": "People per team: a name, or {name, email}. The same person may appear in several applications or teams."
+              }
+            }
+          }
+        }
+      }
+    },
     "gitHost": {
       "type": "object",
       "properties": {

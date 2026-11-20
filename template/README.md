@@ -10,6 +10,7 @@
 ## Daily use
 | Step | Command |
 |---|---|
+| Create a Jira ticket | `/{{EDITION_NAME}}:create-ticket <what it is about>` |
 | Pick up a ticket | `/{{EDITION_NAME}}:pickup ACME-123` |
 | Bugs: logs, root cause | `/{{EDITION_NAME}}:logs`, `/{{EDITION_NAME}}:rca` |
 | Requirements, design | `/{{EDITION_NAME}}:analyze`, `/{{EDITION_NAME}}:design` |

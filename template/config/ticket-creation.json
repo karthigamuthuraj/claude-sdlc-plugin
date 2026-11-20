@@ -1,0 +1,83 @@
+{
+  "_help": [
+    "Default lists for the create-ticket skill: applications, developers per team, QA and the general assignee.",
+    "A plugin update replaces this file. To change the lists for yourself, edit ~/.claude/sdlc-core/ticket-creation.json (Windows: %USERPROFILE%\\.claude\\sdlc-core\\ticket-creation.json); a key there replaces the same key here.",
+    "A project profile (.sdlc/project.json -> ticketCreation) overrides both.",
+    "To change the lists for everyone who uses this repo, edit this file and commit it.",
+    "priorities.default: priority names in the order shown (empty = all Jira priorities, in Jira's order). priorities.bySpace: a different list for one Jira space.",
+    "applications: add or remove projects; each has urlKeywords and teams.backend / teams.frontend / teams.qa. A person is a name, or { \"name\": \"...\", \"email\": \"...\" }.",
+    "qa: QA people shared by every application. generalAssignee: optional, adds a General option.",
+    "subtaskWording: wording of the sub-tasks created when several people are ticked. Developers (backend, frontend) get a Fix sub-task, QA gets a Test sub-task; {KEY} is the parent ticket and {issue} its issue name. Edit the text or add a team.",
+    "description.elaborate: true = the skill analyses your request and screenshots, writes a fuller problem description and shows it for approval; false = it uses your words as they are."
+  ],
+  "templateVersion": "v1",
+  "sprint": {
+    "ask": true
+  },
+  "description": {
+    "elaborate": true
+  },
+  "priorities": {
+    "default": [],
+    "bySpace": {},
+    "hints": {
+      "P1": "Highest",
+      "P2": "High",
+      "P3": "Medium",
+      "P4": "Low",
+      "P5": "Lowest"
+    }
+  },
+  "generalAssignee": "Indhuja",
+  "qa": [
+    "Ashwin Nandhakumar",
+    "Alphyas Suriyan",
+    "Divyashree"
+  ],
+  "applications": {
+    "BloomifAI": {
+      "urlKeywords": [
+        "bloomifai"
+      ],
+      "teams": {
+        "backend": [
+          "Karthiyayini",
+          "Malleswari",
+          "Mohamed",
+          "Saran"
+        ],
+        "frontend": [
+          "Vijay kishor"
+        ]
+      }
+    },
+    "Bloomlink": {
+      "urlKeywords": [
+        "bloomlink"
+      ],
+      "teams": {
+        "backend": [
+          "Vijayan"
+        ],
+        "frontend": [
+          "Karthik",
+          "Vijay kishor"
+        ]
+      }
+    }
+  },
+  "subtaskWording": {
+    "backend": {
+      "verb": "Fix",
+      "description": "Investigate and fix {issue} on the backend. Details are in {KEY}."
+    },
+    "frontend": {
+      "verb": "Fix",
+      "description": "Investigate and fix {issue} on the frontend. Details are in {KEY}."
+    },
+    "qa": {
+      "verb": "Test",
+      "description": "Test and verify {issue} once the fix is ready, and record the result on this sub-task. Details are in {KEY}."
+    }
+  }
+}

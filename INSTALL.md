@@ -2,6 +2,20 @@
 
 `<tools>` is any folder you keep plugin files in (for example `C:\dev\tools` or `~/tools`). Full steps: [README.md](README.md#3-install).
 
+## 0. Try ticket creation straight from this repo (no edition needed)
+
+From a local clone, load the plugin for one session (no install, uses the live files):
+
+    claude --plugin-dir <path-to>/claude-sdlc-plugin
+
+Then, in that session:
+
+    /sdlc-core:create-ticket <what the ticket is about>
+
+It asks for the space, type, priority, sprint or backlog, and the assignee by selection, shows the draft and creates nothing until you approve. With a project profile (`.sdlc/project.json -> ticketCreation`) it also asks for the application(s) and backend, frontend or both. Editions get the same skill as `/<slug>-sdlc:create-ticket`.
+
+Change the priority list (or the sprint question) at any time in `~/.claude/sdlc-core/ticket-creation.json` (Windows: `%USERPROFILE%\.claude\sdlc-core\ticket-creation.json`); with a project profile use `.sdlc/project.json -> ticketCreation`. The priority choices appear in the order of `priorities.default`, for example `["Highest","High","Medium","Low","Lowest"]`; per-space lists go in `priorities.bySpace.<KEY>`. The question shows four options at a time, so a five-name list shows the first three plus "Low or Lowest...".
+
 ## 1. Install sdlc-core (once per developer who creates editions)
 
     /plugin marketplace add karthigamuthuraj/claude-sdlc-plugin
