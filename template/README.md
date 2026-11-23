@@ -11,6 +11,7 @@
 | Step | Command |
 |---|---|
 | Analyse a ticket and plan | `/{{EDITION_NAME}}:analyse-and-plan-ticket PROJ-123` |
+| Implement a ticket or sub-task | `/{{EDITION_NAME}}:implement-ticket PROJ-123` |
 | Create a Jira ticket | `/{{EDITION_NAME}}:create-ticket <what it is about>` |
 | Pick up a ticket | `/{{EDITION_NAME}}:pickup ACME-123` |
 | Bugs: logs, root cause | `/{{EDITION_NAME}}:logs`, `/{{EDITION_NAME}}:rca` |

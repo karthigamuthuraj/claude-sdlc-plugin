@@ -163,6 +163,94 @@
         "attachFiles": { "type": "boolean", "default": true }
       }
     },
+    "ticketImplementation": {
+      "type": "object",
+      "description": "Settings of the implement-ticket skill; every key is optional.",
+      "properties": {
+        "plan": {
+          "type": "object",
+          "properties": {
+            "sources": { "type": "array", "items": { "enum": ["comment", "localFile"] }, "default": ["comment", "localFile"] },
+            "commentMarkers": { "type": "array", "items": { "type": "string" } },
+            "ccPrefix": { "type": "string", "default": "CC:" },
+            "checkParent": { "type": "boolean", "default": true },
+            "localFile": { "type": "string", "description": "{key} is the ticket key." },
+            "ifNoPlan": { "enum": ["stop", "offer-analyse"], "default": "offer-analyse" }
+          }
+        },
+        "status": {
+          "type": "object",
+          "properties": {
+            "transition": { "type": "boolean", "default": true },
+            "when": { "enum": ["start", "after-approval", "never"], "default": "start" },
+            "from": { "type": "array", "items": { "type": "string" } },
+            "to": { "type": "string", "default": "In Progress" }
+          }
+        },
+        "impact": {
+          "type": "object",
+          "properties": {
+            "check": { "type": "boolean", "default": true },
+            "depth": { "type": "number", "default": 2 },
+            "include": { "type": "array", "items": { "enum": ["callers", "overrides", "interfaceImplementations", "tests", "configuration", "queries"] } },
+            "askWhen": { "enum": ["always", "when-impacted"], "default": "always" }
+          }
+        },
+        "approval": { "type": "object", "properties": { "mode": { "enum": ["all-at-once", "per-item"], "default": "all-at-once" } } },
+        "implementation": {
+          "type": "object",
+          "properties": {
+            "scope": { "enum": ["ticket", "all"], "default": "ticket" },
+            "addTests": { "type": "boolean", "default": true },
+            "runVerify": { "type": "boolean", "default": true },
+            "verifyCommands": { "type": "array", "items": { "type": "string" } },
+            "stopOnNewImpact": { "type": "boolean", "default": true }
+          }
+        },
+        "branch": {
+          "type": "object",
+          "description": "The feature branch implement-ticket creates.",
+          "properties": {
+            "mode": { "enum": ["none", "ask", "create"], "default": "create" },
+            "base": { "type": "string", "default": "release", "description": "A branch name, \"release\" (latest branch matching releasePattern) or \"current\"." },
+            "releasePattern": { "type": "string", "default": "release/*" },
+            "releaseOrder": { "enum": ["version", "newest-commit"], "default": "version" },
+            "remote": { "type": "string", "default": "origin" },
+            "fetch": { "type": "boolean", "default": true },
+            "fallbackBase": { "type": "string", "default": "development" },
+            "pattern": { "type": "string", "default": "feature/{KEY}", "description": "Placeholders: {KEY}, {key}, {number}, {type}, {slug}." },
+            "keyFrom": { "enum": ["ticket", "parent"], "default": "ticket" },
+            "typePrefixes": { "type": "object", "description": "Issue type name to {type} value; \"default\" for the rest." },
+            "slugMaxWords": { "type": "integer", "default": 6 },
+            "ifExists": { "enum": ["ask", "reuse", "stop"], "default": "ask" },
+            "dirtyTree": { "enum": ["ask", "carry", "stop"], "default": "ask" },
+            "method": { "enum": ["auto", "switch", "worktree"], "default": "auto" },
+            "worktreeDir": { "type": "string", "default": ".worktrees" }
+          }
+        },
+        "verify": {
+          "type": "object",
+          "properties": {
+            "planScenarios": { "type": "boolean", "default": true },
+            "relatedMethods": { "type": "boolean", "default": true },
+            "apiChecks": { "enum": ["documented", "ask", "never"], "default": "documented" }
+          }
+        },
+        "commit": {
+          "type": "object",
+          "properties": {
+            "mode": { "enum": ["ask", "never"], "default": "ask" },
+            "subject": { "type": "string", "default": "{KEY}: {summary}" },
+            "includeBranch": { "type": "boolean", "default": true },
+            "branchLine": { "type": "string", "default": "Branch: {branch}" },
+            "coAuthor": { "type": "boolean", "default": true },
+            "coAuthorSource": { "enum": ["git"], "default": "git" },
+            "extraTrailers": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "report": { "type": "object", "properties": { "commentOnFinish": { "enum": ["never", "ask"], "default": "never" } } }
+      }
+    },
     "gitHost": {
       "type": "object",
       "properties": {

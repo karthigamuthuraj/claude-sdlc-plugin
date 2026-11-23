@@ -1,0 +1,106 @@
+{
+  "_help": [
+    "Settings of the implement-ticket skill. Do not edit this shipped copy: a plugin update replaces it.",
+    "Put your own values in ~/.claude/sdlc-core/ticket-implementation.json (Windows: %USERPROFILE%\\.claude\\sdlc-core\\ticket-implementation.json); a key there replaces the same key here. A project profile (.sdlc/project.json -> ticketImplementation) overrides both.",
+    "plan.sources: where the plan is looked for, in this order. comment = the analysis/plan comment on the ticket (and on its parent), localFile = the file analyse-and-plan-ticket saved under .sdlc/tickets/<KEY>/.",
+    "plan.commentMarkers: words that identify the plan comment (a heading or title in it). ccPrefix: comments written by analyse-and-plan-ticket start with this.",
+    "plan.checkParent: when the ticket is a sub-task, also read its parent ticket and the parent's comments (that is where the plan usually is).",
+    "plan.ifNoPlan: stop = say there is no plan and stop; offer-analyse = offer to run analyse-and-plan-ticket first.",
+    "status: transition = move the ticket when work starts. when: start = before the code is analysed, after-approval = only once you approved the impact check, never = do not touch the status. from: only tickets in one of these statuses are moved (already in the target status is left alone). to: the target status. The skill never moves a ticket to a human-only status (Done, Closed, Released ...).",
+    "impact.check: look for code that the planned change would break. depth: how many levels of callers to follow. include: what to look for. askWhen: always = show the impact check and ask even when nothing is affected; when-impacted = ask only when something would break.",
+    "approval.mode: all-at-once = one question for the whole impact check; per-item = one question per affected method.",
+    "implementation.scope: ticket = only the plan items that belong to this ticket (for a sub-task, its part, for example Backend); all = every plan item. addTests: write or update tests the plan lists. runVerify: build and run tests after the change (verifyCommands, or the commands found in the project's CLAUDE.md or README when empty). stopOnNewImpact: if something new would break while coding, stop and ask again.",
+    "branch.mode: create = create the feature branch as part of the approval (default), ask = ask first, none = stay on the current branch. The skill never commits, pushes or opens a pull request.",
+    "branch.base: the branch the feature branch starts from. \"release\" (the default) = the latest branch that matches releasePattern, a branch name (for example development), or \"current\". releaseOrder: version = the highest version number in the name (release/release-1.6.10 beats 1.6.9), newest-commit = the most recently committed. fallbackBase is used when no release branch is found or the base does not exist. remote and fetch: where to look and whether to run git fetch first.",
+    "branch.pattern: the feature branch name. Placeholders: {KEY} ticket key (BLMFAI-1252), {key} lower case, {number} the number part (1252), {type} from typePrefixes by issue type (Bug = bugfix, everything else = feature), {slug} the words of the summary (at most slugMaxWords). Example: feature/{KEY} gives feature/BLMFAI-1252; {type}/{KEY}-{slug} gives bugfix/BLMFAI-1252-bloomlink-slow-open.",
+    "branch.keyFrom: ticket = the key you gave (a sub-task key for a sub-task), parent = the parent ticket's key. ifExists: ask, reuse (switch to the existing branch) or stop. dirtyTree: ask, carry (the uncommitted changes come along) or stop; changes are never stashed, reset or discarded. method: auto = git switch -c, falling back to a git worktree when the safety hooks block switching; switch; worktree. worktreeDir: where a worktree goes.",
+    "verify.planScenarios: after the code is written, check every scenario of the plan's test plan (positive, negative, boundary, regression) and its acceptance criteria against a test and run them. relatedMethods: also check every method and API the impact check listed as affected still works. apiChecks: documented = exercise an API only in the way the project documents for local use, ask = ask first, never = rely on the tests only.",
+    "commit.mode: ask = after the report, ask the developer to confirm, then commit; never = leave the changes uncommitted. subject: the first line, placeholders {KEY} {summary} {branch} {type}. includeBranch + branchLine: add the branch name to the message body, for example \"Branch: feature/BLMFAI-1252\". coAuthor: add a Co-authored-by trailer for the developer, taken from git config user.name and user.email (coAuthorSource git). extraTrailers: any other trailer lines you want; no AI or tool trailer is added unless you list it here. The skill never pushes.",
+    "report.commentOnFinish: never = no Jira comment when done, ask = offer a short progress comment."
+  ],
+  "plan": {
+    "sources": [
+      "comment",
+      "localFile"
+    ],
+    "commentMarkers": [
+      "Implementation plan",
+      "Requirements analysis"
+    ],
+    "ccPrefix": "CC:",
+    "checkParent": true,
+    "localFile": "{key}-implementation-plan.md",
+    "ifNoPlan": "offer-analyse"
+  },
+  "status": {
+    "transition": true,
+    "when": "start",
+    "from": [
+      "To Do",
+      "Open",
+      "Backlog",
+      "Selected for Development"
+    ],
+    "to": "In Progress"
+  },
+  "impact": {
+    "check": true,
+    "depth": 2,
+    "include": [
+      "callers",
+      "overrides",
+      "interfaceImplementations",
+      "tests",
+      "configuration",
+      "queries"
+    ],
+    "askWhen": "always"
+  },
+  "approval": {
+    "mode": "all-at-once"
+  },
+  "implementation": {
+    "scope": "ticket",
+    "addTests": true,
+    "runVerify": true,
+    "verifyCommands": [],
+    "stopOnNewImpact": true
+  },
+  "branch": {
+    "mode": "create",
+    "base": "release",
+    "releasePattern": "release/*",
+    "releaseOrder": "version",
+    "remote": "origin",
+    "fetch": true,
+    "fallbackBase": "development",
+    "pattern": "feature/{KEY}",
+    "keyFrom": "ticket",
+    "typePrefixes": {
+      "Bug": "bugfix",
+      "default": "feature"
+    },
+    "slugMaxWords": 6,
+    "ifExists": "ask",
+    "dirtyTree": "ask",
+    "method": "auto",
+    "worktreeDir": ".worktrees"
+  },
+  "verify": {
+    "planScenarios": true,
+    "relatedMethods": true,
+    "apiChecks": "documented"
+  },
+  "commit": {
+    "mode": "ask",
+    "subject": "{KEY}: {summary}",
+    "includeBranch": true,
+    "branchLine": "Branch: {branch}",
+    "coAuthor": true,
+    "coAuthorSource": "git",
+    "extraTrailers": []
+  },
+  "report": {
+    "commentOnFinish": "never"
+  }
+}
