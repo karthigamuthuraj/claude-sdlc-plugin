@@ -236,13 +236,16 @@ test('attach: personal data cannot hide in odd encodings or huge text files (fai
   reset();
   const utf16 = join(dir, 'utf16.txt');
   writeFileSync(utf16, Buffer.concat([Buffer.from([0xff, 0xfe]), Buffer.from('call me at jo@corp.com about the visit', 'utf16le')]));
+  const fakeBom = join(dir, 'fakebom.txt');
+  writeFileSync(fakeBom, Buffer.concat([Buffer.from([0xff, 0xfe]), Buffer.from('call me at jo@corp.com about the visit')]));
   const badBytes = join(dir, 'broken.csv');
   writeFileSync(badBytes, Buffer.concat([Buffer.from([0xc3, 0x28, 0xff]), Buffer.from(' reach jo@corp.com ')]));
   const huge = join(dir, 'huge.log');
   writeFileSync(huge, Buffer.alloc(21 * 1024 * 1024, 'a'));
-  const r = await run(['--check', '--site', SITE, utf16, badBytes, huge], withCreds());
+  const r = await run(['--check', '--site', SITE, utf16, fakeBom, badBytes, huge], withCreds());
   const byName = Object.fromEntries(r.json.files.map((f) => [f.file, f]));
   assert.ok(byName['utf16.txt'].flagged > 0, 'UTF-16 text is decoded and scanned');
+  assert.ok(byName['fakebom.txt'].flagged > 0, 'a fake UTF-16 byte-order mark on UTF-8 text does not hide it');
   assert.ok(byName['broken.csv'].flagged > 0, 'a known text type with invalid bytes is still scanned');
   assert.ok(byName['huge.log'].flagged > 0, 'a text file over the scan limit is flagged, not skipped');
   const up = await run(['--site', SITE, '--key', 'PROJ-8', huge], withCreds());

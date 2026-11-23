@@ -116,13 +116,14 @@ function looksLikeText(path) {
     try { new TextDecoder('utf-8', { fatal: true }).decode(head, { stream: true }); return true; } catch { return false; }
   } finally { fs.closeSync(fd); }
 }
-// Decodes without ever failing: honours a UTF-16 byte-order mark, replaces bad bytes, drops NULs, so nothing can hide from the scan.
-function scanText(buf) {
-  let text;
-  if (buf.length >= 2 && buf[0] === 0xff && buf[1] === 0xfe) text = buf.subarray(2).toString('utf16le');
-  else if (buf.length >= 2 && buf[0] === 0xfe && buf[1] === 0xff) text = Buffer.from(buf.subarray(2)).swap16().toString('utf16le');
-  else text = buf.toString('utf8');
-  return text.replace(/\0/g, '');
+// Every plausible reading of the bytes is scanned and a hit in any of them counts, so a fake or misleading byte-order mark
+// cannot hide text: the bytes as UTF-8 and as latin1 (bad bytes replaced, NULs dropped), and, when a UTF-16 byte-order mark
+// is present, as UTF-16 too.
+function scanTexts(buf) {
+  const texts = [buf.toString('utf8'), buf.toString('latin1')];
+  if (buf.length >= 2 && buf[0] === 0xff && buf[1] === 0xfe) texts.push(buf.subarray(2).toString('utf16le'));
+  if (buf.length >= 2 && buf[0] === 0xfe && buf[1] === 0xff) texts.push(Buffer.from(buf.subarray(2)).swap16().toString('utf16le'));
+  return texts.map((s) => s.replace(/\0/g, ''));
 }
 const MIME = { '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.gif': 'image/gif', '.webp': 'image/webp', '.mp4': 'video/mp4', '.mov': 'video/quicktime', '.webm': 'video/webm', '.mkv': 'video/x-matroska', '.pdf': 'application/pdf', '.txt': 'text/plain', '.md': 'text/markdown', '.json': 'application/json', '.csv': 'text/csv', '.log': 'text/plain', '.zip': 'application/zip', '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation' };
 const maxBytes = Number(opt('max-mb', 0)) > 0 ? Number(opt('max-mb')) * 1024 * 1024 : 0;
@@ -144,8 +145,8 @@ const infos = paths.map((p) => {
         info.flagged = 1;
         info.unscanned = true;
       } else {
-        const hits = redactionHits(scanText(fs.readFileSync(path)), null);
-        if (hits.length) info.flagged = hits.length;
+        const most = Math.max(...scanTexts(fs.readFileSync(path)).map((text) => redactionHits(text, null).length));
+        if (most > 0) info.flagged = most;
       }
     }
   } catch { return { ...info, problem: 'file could not be read' }; }
