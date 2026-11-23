@@ -16,6 +16,14 @@ It asks for the space, type, priority, sprint or backlog, and the assignee by se
 
 Change the priority list (or the sprint question) at any time in `~/.claude/sdlc-core/ticket-creation.json` (Windows: `%USERPROFILE%\.claude\sdlc-core\ticket-creation.json`); with a project profile use `.sdlc/project.json -> ticketCreation`. The priority choices appear in the order of `priorities.default`, for example `["Highest","High","Medium","Low","Lowest"]`; per-space lists go in `priorities.bySpace.<KEY>`. The question shows four options at a time, so a five-name list shows the first three plus "Low or Lowest...".
 
+## Attachments on tickets (set up once)
+
+The Atlassian connector cannot upload files, so `create-ticket` uploads screenshots, recordings and documents with your own API token. Create a token in your Atlassian account (Security > API tokens), then run this in your own PowerShell (the token is typed hidden; never paste it into a chat):
+
+    $e = Read-Host "Atlassian email"; $t = Read-Host "Atlassian API token" -AsSecureString; setx JIRA_EMAIL $e | Out-Null; setx JIRA_API_TOKEN ([Net.NetworkCredential]::new('',$t).Password) | Out-Null
+
+On Windows the saved values are found straight away, no new session needed. The skill checks this before it creates the ticket and, if it is not ready, waits for you to set it up instead of creating the ticket without the files.
+
 ## 1. Install sdlc-core (once per developer who creates editions)
 
     /plugin marketplace add karthigamuthuraj/claude-sdlc-plugin

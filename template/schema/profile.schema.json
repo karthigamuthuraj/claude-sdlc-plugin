@@ -114,7 +114,8 @@
         "templateVersion": { "type": "string", "default": "v2", "description": "Folder under templates/jira/; never asked at run time." },
         "mode": { "enum": ["auto", "manual", "ask"], "default": "auto", "description": "auto: predict from the evidence, ask only what it cannot decide, show one preview; manual (ask is the same): ask every decision." },
         "sprint": { "type": "object", "properties": { "mode": { "enum": ["follow", "auto", "ask", "current", "backlog"], "default": "follow" } } },
-        "inference": { "type": "object", "properties": { "qa": { "enum": ["when-asked", "always", "never"], "default": "when-asked" } } },
+        "structure": { "enum": ["parent", "single"], "default": "parent", "description": "parent: every ticket is a parent for the general assignee plus one sub-task per developer and one for QA; single: one person gives one ticket." },
+        "inference": { "type": "object", "properties": { "qa": { "enum": ["always", "when-asked", "never"], "default": "always" } } },
         "media": { "type": "object", "properties": { "maxFrames": { "type": "number", "default": 12 } } },
         "similar": { "type": "object", "properties": { "maxResults": { "type": "number", "default": 6 } } },
         "description": { "type": "object", "properties": { "elaborate": { "type": "boolean", "default": true } } },
@@ -148,6 +149,18 @@
             }
           }
         }
+      }
+    },
+    "ticketAnalysis": {
+      "type": "object",
+      "description": "Settings of the analyse-and-plan-ticket skill; every key is optional.",
+      "properties": {
+        "templateSet": { "type": "string", "default": "standard", "description": "Folder under templates/analysis/ (standard, detailed, or your own)." },
+        "files": { "type": "object", "properties": { "analysis": { "type": "string" }, "plan": { "type": "string" } }, "description": "File names; {key} is the ticket key." },
+        "outputDir": { "type": "string", "description": "Where the files are written; empty = the ticket folder." },
+        "ccGeneralAssignee": { "type": "boolean", "default": true },
+        "maxCommentChars": { "type": "number", "default": 28000 },
+        "attachFiles": { "type": "boolean", "default": true }
       }
     },
     "gitHost": {

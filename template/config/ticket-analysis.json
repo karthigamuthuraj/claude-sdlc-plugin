@@ -1,0 +1,21 @@
+{
+  "_help": [
+    "Settings of the analyse-and-plan-ticket skill. Do not edit this shipped copy: a plugin update replaces it.",
+    "Put your own values in ~/.claude/sdlc-core/ticket-analysis.json (Windows: %USERPROFILE%\\.claude\\sdlc-core\\ticket-analysis.json); a key there replaces the same key here. A project profile (.sdlc/project.json -> ticketAnalysis) overrides both.",
+    "templateSet: which set of templates writes the two files. Folders under templates/analysis/: standard (short, 8 sections each) or detailed (adds stakeholders, non-functional requirements, traceability, task breakdown, rollout and a definition of done). Add your own folder and name it for what it is, for example 'security-review'.",
+    "files: the names of the two files. {key} is the ticket key. Keep the names meaningful: they are what people see on the ticket.",
+    "outputDir: where the files are written. Empty means the ticket folder of the profile (.sdlc/tickets/<KEY>/), or .sdlc/tickets/<KEY>/ in the current folder when there is no profile.",
+    "ccGeneralAssignee: true = the Jira comment starts with 'CC:' and a real @mention of the general assignee (generalAssignee in ticket-creation.json). The mention is a Jira user tag, never plain text.",
+    "maxCommentChars: a Jira comment holds about 32000 characters; longer content is split into two comments (analysis, then plan).",
+    "attachFiles: true = also attach the two .md files to the ticket when an API token is configured; otherwise they are in the comment and kept locally."
+  ],
+  "templateSet": "standard",
+  "files": {
+    "analysis": "{key}-requirements-analysis.md",
+    "plan": "{key}-implementation-plan.md"
+  },
+  "outputDir": "",
+  "ccGeneralAssignee": true,
+  "maxCommentChars": 28000,
+  "attachFiles": true
+}

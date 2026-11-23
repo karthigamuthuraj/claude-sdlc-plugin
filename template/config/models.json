@@ -19,7 +19,8 @@
     "review":      { "model": "opus",   "effort": "high" },
     "resolve":     { "model": "opus",   "effort": "high" },
     "qa-handover": { "model": "sonnet", "effort": "medium" },
-    "sync":        { "model": "haiku",  "effort": "low" }
+    "sync":        { "model": "haiku",  "effort": "low" },
+    "analyse-and-plan-ticket": { "model": "opus", "effort": "high" }
   },
   "reviewerPass": { "model": "opus", "effort": "high" },
   "criticPass":   { "model": "opus", "effort": "high" },

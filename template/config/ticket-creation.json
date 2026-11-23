@@ -11,16 +11,18 @@
     "description.elaborate: true = the skill analyses your request and screenshots, writes a fuller problem description and shows it for approval; false = it uses your words as they are.",
     "mode: auto = the skill predicts everything the evidence supports (application, team, assignee, priority, sprint, type) and asks only what it cannot decide, then shows one preview | manual = it asks you every decision as a select-only question, with its prediction marked Recommended. (ask means the same as manual.)",
     "sprint.mode: follow = decided automatically when mode is auto, asked when mode is manual | ask | auto | current | backlog (fix it whatever mode says).",
-    "inference.qa: when-asked (a QA sub-task only if the request asks to test or verify) | always | never.",
     "media.maxFrames: frames read from one screen recording (needs ffmpeg). similar.maxResults: existing Jira records read per search.",
-    "environments: the environments offered when the request and screenshots do not name one, in this order (edit freely). The names follow the six environment files of bloomlink-api (core dev/stage/staging, healthcare dev/stage/prod); change them to your own."
+    "environments: the environments offered when the request and screenshots do not name one, in this order (edit freely). The names follow the six environment files of bloomlink-api (core dev/stage/staging, healthcare dev/stage/prod); change them to your own.",
+    "structure: parent = every ticket is a parent ticket for the general assignee plus one sub-task per developer and one for QA (QA is mandatory) | single = one person gives one ticket, no sub-tasks.",
+    "inference.qa: always = a QA sub-task on every ticket, never asked | when-asked | never (the last two only apply with structure: single)."
   ],
   "mode": "auto",
+  "structure": "parent",
   "sprint": {
     "mode": "follow"
   },
   "inference": {
-    "qa": "when-asked"
+    "qa": "always"
   },
   "media": {
     "maxFrames": 12
