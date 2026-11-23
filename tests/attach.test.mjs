@@ -2,7 +2,7 @@ import test, { after } from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import { spawn, spawnSync } from 'node:child_process';
-import { mkdtempSync, writeFileSync, readFileSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -46,10 +46,13 @@ writeFileSync(mp4, Buffer.concat([Buffer.from([0, 0, 0, 0x18]), Buffer.from('fty
 writeFileSync(log, 'plain log line, nothing personal');
 writeFileSync(flagged, 'call me at jo@corp.com about the visit');
 
-const baseEnv = () => { const e = { ...process.env }; for (const k of ['JIRA_BASE_URL', 'JIRA_EMAIL', 'JIRA_API_TOKEN']) delete e[k]; return e; };
+// Tests never touch the developer's real saved login: the saved-login folder is an empty temp folder.
+const emptyConfig = mkdtempSync(join(tmpdir(), 'attach-config-'));
+const baseEnv = () => { const e = { ...process.env, SDLC_CORE_CONFIG_DIR: emptyConfig }; for (const k of ['JIRA_BASE_URL', 'JIRA_EMAIL', 'JIRA_API_TOKEN']) delete e[k]; return e; };
 const withCreds = () => ({ ...baseEnv(), JIRA_EMAIL: EMAIL, JIRA_API_TOKEN: TOKEN, JIRA_BASE_URL: SITE });
-const run = (args, env) => new Promise((resolve) => {
+const run = (args, env, input) => new Promise((resolve) => {
   const p = spawn(process.execPath, [SCRIPT, ...args], { env });
+  if (input !== undefined) p.stdin.end(input); else p.stdin.end();
   let stdout = '';
   let stderr = '';
   p.stdout.on('data', (d) => { stdout += d; });
@@ -150,7 +153,40 @@ test('create-ticket skill: waits for the upload set-up instead of creating the t
   const skill = readFileSync(join(dirname(SCRIPT), '..', 'skills', 'create-ticket', 'SKILL.md'), 'utf8');
   assert.match(skill, /do not create the ticket yet/);
   assert.match(skill, /no answer or "no preference" means stop and wait/);
-  assert.match(skill, /setup-jira-upload.ps1/);
+  assert.match(skill, /attach\.mjs --save --site/);
+  assert.match(skill, /Paste your Atlassian API token/);
+  assert.match(skill, /the developer installs and configures nothing/);
+  assert.ok(!/setup-jira-upload|setx/.test(skill), 'no manual set-up steps are left in the skill');
+});
+
+test('attach --save: tests the token, saves only a working login, and later runs need nothing else', async () => {
+  reset();
+  const cfg = mkdtempSync(join(tmpdir(), 'attach-save-'));
+  const env = { ...baseEnv(), SDLC_CORE_CONFIG_DIR: cfg };
+  const bad = await run(['--save', '--site', SITE, '--email', EMAIL], env, 'wrong-token');
+  assert.equal(bad.status, 3, bad.stdout);
+  assert.match(bad.json.error, /rejected/);
+  assert.ok(!existsSync(join(cfg, 'jira-upload.json')), 'a rejected login is not saved');
+  assert.ok(!bad.stdout.includes('wrong-token'));
+  const good = await run(['--save', '--site', SITE, '--email', EMAIL], env, `${TOKEN}\n`);
+  assert.equal(good.status, 0, good.stdout + good.stderr);
+  assert.ok(!good.stdout.includes(TOKEN) && !good.stderr.includes(TOKEN), 'the token is never printed');
+  const saved = JSON.parse(readFileSync(join(cfg, 'jira-upload.json'), 'utf8'));
+  assert.deepEqual([saved.site, saved.email, saved.token], [SITE, EMAIL, TOKEN]);
+  // No environment variables at all: the saved login is used.
+  const chk = await run(['--check', '--site', SITE, png], env);
+  assert.equal(chk.status, 0, chk.stdout);
+  assert.match(chk.json.siteBound, /^yes/);
+  reset();
+  const up = await run(['--site', SITE, '--key', 'PROJ-5', png], env);
+  assert.equal(up.status, 0, up.stdout);
+  assert.equal(calls.find((c) => c.method === 'POST').auth, EXPECTED);
+  // The saved login is bound to its site: another host never gets the token.
+  const other = await run(['--check', '--site', 'https://other.atlassian.net', png], env);
+  assert.equal(other.status, 6, other.stdout);
+  // Environment variables still override the file.
+  const over = await run(['--check', '--site', SITE, png], { ...env, JIRA_API_TOKEN: 'wrong-token' });
+  assert.equal(over.status, 3);
 });
 
 test('attach: on Windows, saved user variables are used when the session lacks them', { skip: process.platform !== 'win32' }, async () => {
@@ -194,6 +230,24 @@ test('attach: credential-type files are refused and any text file is scanned, wh
   const up = await run(['--site', SITE, '--key', 'PROJ-9', '--allow-flagged', envFile], withCreds());
   assert.equal(up.status, 7, 'a credential-type file is never uploaded, even with --allow-flagged');
   assert.equal(calls.filter((c) => c.method === 'POST').length, 0);
+});
+
+test('attach: personal data cannot hide in odd encodings or huge text files (fail closed)', async () => {
+  reset();
+  const utf16 = join(dir, 'utf16.txt');
+  writeFileSync(utf16, Buffer.concat([Buffer.from([0xff, 0xfe]), Buffer.from('call me at jo@corp.com about the visit', 'utf16le')]));
+  const badBytes = join(dir, 'broken.csv');
+  writeFileSync(badBytes, Buffer.concat([Buffer.from([0xc3, 0x28, 0xff]), Buffer.from(' reach jo@corp.com ')]));
+  const huge = join(dir, 'huge.log');
+  writeFileSync(huge, Buffer.alloc(21 * 1024 * 1024, 'a'));
+  const r = await run(['--check', '--site', SITE, utf16, badBytes, huge], withCreds());
+  const byName = Object.fromEntries(r.json.files.map((f) => [f.file, f]));
+  assert.ok(byName['utf16.txt'].flagged > 0, 'UTF-16 text is decoded and scanned');
+  assert.ok(byName['broken.csv'].flagged > 0, 'a known text type with invalid bytes is still scanned');
+  assert.ok(byName['huge.log'].flagged > 0, 'a text file over the scan limit is flagged, not skipped');
+  const up = await run(['--site', SITE, '--key', 'PROJ-8', huge], withCreds());
+  assert.equal(up.status, 5, up.stdout);
+  assert.match(up.json.failed[0].reason, /not scanned/);
 });
 
 test('attach: --check says whether the token is bound to the saved site', async () => {

@@ -16,15 +16,9 @@ It asks for the space, type, priority, sprint or backlog, and the assignee by se
 
 Change the priority list (or the sprint question) at any time in `~/.claude/sdlc-core/ticket-creation.json` (Windows: `%USERPROFILE%\.claude\sdlc-core\ticket-creation.json`); with a project profile use `.sdlc/project.json -> ticketCreation`. The priority choices appear in the order of `priorities.default`, for example `["Highest","High","Medium","Low","Lowest"]`; per-space lists go in `priorities.bySpace.<KEY>`. The question shows four options at a time, so a five-name list shows the first three plus "Low or Lowest...".
 
-## Attachments on tickets (set up once)
+## Attachments on tickets (nothing to set up)
 
-The Atlassian connector cannot upload files, so `create-ticket` uploads screenshots, recordings and documents with your own API token. Create a token in your Atlassian account (Security > API tokens), then run this in your own PowerShell (the token is typed hidden; never paste it into a chat):
-
-    & '<path-to>\claude-sdlc-plugin\template\scripts\setup-jira-upload.ps1'
-
-It asks for your Jira site address, your Atlassian email and the API token, and saves them as the user variables `JIRA_BASE_URL`, `JIRA_EMAIL` and `JIRA_API_TOKEN`. Every team member runs it with their own email and token; to change any of them later, run it again (or edit those three user variables). The token is only ever sent to the saved site.
-
-On Windows the saved values are found straight away, no new session needed. The skill checks this before it creates the ticket and, if it is not ready, waits for you to set it up instead of creating the ticket without the files.
+The Atlassian connector cannot upload files, so `create-ticket` uploads screenshots, recordings and documents with your own Jira API token. You install and configure nothing: the first time you give the skill a file it reads your email and site from the connector and asks once for the token (Atlassian account > Security > API tokens > Create API token, paste it in the answer box). It tests the token and saves the login in your own folder, `~/.claude/sdlc-core/jira-upload.json` (Windows: `%USERPROFILE%\.claude\sdlc-core\jira-upload.json`), never in a repo. From then on uploads are automatic. To change the login, delete that file (the skill asks again) or set `JIRA_EMAIL`, `JIRA_API_TOKEN` and `JIRA_BASE_URL` in the environment, which override it.
 
 ## 1. Install sdlc-core (once per developer who creates editions)
 
