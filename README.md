@@ -165,14 +165,22 @@ All Jira reads and writes go through the Atlassian MCP connector. Developers' st
 
 | Key | Purpose |
 |---|---|
-| `templateVersion` | Template folder under `templates/jira/` (default `v1`); never asked |
-| `sprint.ask` | Ask "current sprint or backlog" and show the active sprint's name (default `true`) |
+| `templateVersion` | Template folder under `templates/jira/`: `v1` or `v2` (default: Bug Summary / Steps / Expected / Actual bugs, Given-When-Then stories, tasks with a Definition of Done, epics; see `templates/jira/README.md`); never asked. Every ticket ends with a line `Ticket template: <version>/<file>` so you can see which template created it |
+| `mode` | `auto` (default): the skill predicts the application, teams, assignee, priority, sprint and type from the evidence, asks only what it cannot decide, and shows one preview; `manual` (`ask` is the same): it asks you every decision, with its prediction marked Recommended |
+| `sprint.mode` | `follow` (default): decided when `mode` is `auto`, asked when it is `manual`; or fix it: `ask`, `auto` (current sprint for High or Highest, else backlog), `current`, `backlog` |
+| `inference.qa` | Add a QA sub-task `when-asked` (default), `always` or `never` |
+| `environments` | Environments offered when none is named in the request or screenshots (the skill asks, with "Not sure" and an Other box) |
+| `media.maxFrames`, `similar.maxResults` | Frames read from a screen recording (default 12) and Jira records read per search (default 6) |
 | `priorities.default`, `priorities.bySpace.<KEY>`, `priorities.hints` | The priority names offered (per team or space; empty means all Jira priorities) and the mapping from request hints such as `P1` |
 | `applications` | Your projects (any number), each with `urlKeywords` and `teams.backend` / `teams.frontend` / `teams.qa` people (a name, or `{name, email}`) |
 | `qa` | The QA team shared by every application |
-| `generalAssignee` | Optional person; adds a "General" option to the team question |
+| `generalAssignee` | Owner of the parent ticket when several people work on it |
 
-There is no template-details question: the skill analyses your request and screenshots, writes a fuller problem description (only from what you gave it, with unknowns marked "To be confirmed"), shows it for your approval (an "Edit problem summary" option lets you shorten it, use your original words only, or type your own text) and adds it to the ticket after you approve; `description.elaborate: false` turns that off. The skill asks which application(s) (one or several), then which team(s) (Backend, Frontend, QA; multi-select), then the assignee from exactly the lists you selected: a multi-select when you ticked more than one application or more than one team, a single choice when you ticked one application and one team (with several people ticked it creates one parent ticket assigned to the general assignee and one sub-task per person, each assigned to that person; with one person ticked, one ticket). A person listed in several applications or teams is shown once (matched by name, email or Jira account, with a second name or initial when two people share a name). Without `applications`, it offers yourself, recent assignees or unassigned. Every list is plain JSON you can edit at any time to add or remove names.
+**Automatic by default.** The skill reads your request, screenshots and screen recordings, checks existing Jira records, and works out the space, issue type, priority, sprint, application(s), team(s) and who should work on it. It writes the whole description (problem summary, environment, steps to reproduce, actual result, expected result, impact) from the request, screenshots and recordings, saying where each part came from, and marks "To be confirmed" only where nothing supports a line, then shows **one preview** with the reason for each choice and the existing tickets it used, including a possible duplicate. Nothing is created until you select "Create ticket"; "Edit description" (any section: shorter, original words only, or your own text) and "Change something" adjust the preview first. It asks a question only when the evidence cannot decide (for example no sign of which application).
+
+- **Screen recordings** are read as evenly spaced frames with `template/scripts/frames.mjs`, which needs ffmpeg (on PATH, or the Python package `imageio-ffmpeg`). Audio is not analysed; without ffmpeg the preview says the recording was not analysed.
+- **People:** the person who worked on similar tickets is preferred, then the one with fewer open tickets in the active sprint, then list order. One person gives one ticket; several give a parent ticket for the general assignee plus one sub-task per person ("Fix: ..." for developers, "Test: ..." for QA). A person listed in several applications or teams counts once.
+- Every list is plain JSON you can edit at any time. `mode: manual` brings back the question-by-question flow; `description.elaborate: false` turns the written description off.
 
 ## 5. Skills inventory
 
@@ -182,7 +190,7 @@ Models are Claude Code aliases, so newer model versions need no change. Defaults
 |---|---|---|---|---|---|
 | new-project (core) | Generate or upgrade a project edition | Sonnet | Low | None | None |
 | setup | Onboard the project: profile, steering, CLAUDE.md, git hooks, doctor | Sonnet | Medium | None | Reads project and statuses |
-| create-ticket | Create a Jira ticket from the template (space, type, configurable priority list, current sprint or backlog, application(s), backend/frontend/both, deduplicated developers; optional attachments) | Sonnet | Medium | Developer approves the draft | Creates the ticket; attachment |
+| create-ticket | Create a Jira ticket with almost no questions: reads the request, screenshots and recordings, checks existing Jira records, decides space, type, priority, sprint, application(s), team(s) and people, shows one preview | Sonnet | Medium | Developer confirms the preview | Reads similar tickets; creates the ticket and sub-tasks |
 | pickup | Duplicate check, read the ticket, repos, risk, track, ticket context | Sonnet | Medium | Key matches the project pattern | Comment; In Progress |
 | logs | Read-only log analysis (bug, hotfix) | Sonnet | Medium | Track confirmed; read-only mode | Comment |
 | rca | Root cause with evidence; review loop | Opus | High | Track confirmed; read-only mode | Comment |

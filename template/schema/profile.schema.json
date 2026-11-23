@@ -111,8 +111,14 @@
       "type": "object",
       "description": "Settings of the create-ticket skill; every key is optional.",
       "properties": {
-        "templateVersion": { "type": "string", "default": "v1", "description": "Folder under templates/jira/; never asked at run time." },
-        "sprint": { "type": "object", "properties": { "ask": { "type": "boolean", "default": true } } },
+        "templateVersion": { "type": "string", "default": "v2", "description": "Folder under templates/jira/; never asked at run time." },
+        "mode": { "enum": ["auto", "manual", "ask"], "default": "auto", "description": "auto: predict from the evidence, ask only what it cannot decide, show one preview; manual (ask is the same): ask every decision." },
+        "sprint": { "type": "object", "properties": { "mode": { "enum": ["follow", "auto", "ask", "current", "backlog"], "default": "follow" } } },
+        "inference": { "type": "object", "properties": { "qa": { "enum": ["when-asked", "always", "never"], "default": "when-asked" } } },
+        "media": { "type": "object", "properties": { "maxFrames": { "type": "number", "default": 12 } } },
+        "similar": { "type": "object", "properties": { "maxResults": { "type": "number", "default": 6 } } },
+        "description": { "type": "object", "properties": { "elaborate": { "type": "boolean", "default": true } } },
+        "subtaskWording": { "type": "object", "additionalProperties": { "type": "object", "properties": { "verb": { "type": "string" }, "description": { "type": "string" } } } },
         "priorities": {
           "type": "object",
           "properties": {

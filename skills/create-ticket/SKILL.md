@@ -1,6 +1,6 @@
 ---
 name: create-ticket
-description: Create a Jira ticket straight from sdlc-core, without generating a project edition first - same skill as /<edition>:create-ticket (select-only questions for space, type, priority, sprint or backlog, application(s), backend/frontend/both and the assignee; template-filled description; approval before anything is created). Use to try or use ticket creation from the core plugin.
+description: Create a Jira ticket straight from sdlc-core, without generating a project edition first - same skill as /<edition>:create-ticket. It reads the request, screenshots and screen recordings, checks existing Jira records, works out the space, type, priority, sprint, application(s), team(s) and who should work on it, and shows one preview; nothing is created until the developer confirms. Use to try or use ticket creation from the core plugin.
 model: sonnet
 ---
 
@@ -15,4 +15,4 @@ model: sonnet
    - `sdlc redact -` works without a profile (core redaction rules only).
 2. The request to turn into a ticket is whatever the developer typed after the command.
 
-Ask nothing about templates or boards; everything else is asked by the shared skill, as select-only questions, and nothing is created before the developer approves the draft.
+Screen recordings are read with `<plugin>/scripts/frames.mjs` (needs ffmpeg). Ask nothing about templates or boards; the shared skill decides everything it can, asks only what the evidence cannot decide (select-only), and nothing is created before the developer confirms the preview.

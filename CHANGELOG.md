@@ -2,13 +2,19 @@
 
 ## Unreleased
 
+- `ticketCreation.mode` is `auto` (the skill predicts application, team, assignee, priority, sprint and type and asks only what it cannot decide) or `manual` (`ask` is the same: it asks every decision, prediction marked Recommended). New `sprint.mode: follow` (default) follows `mode`.
+- New Jira ticket template version `v2` (bug, story, task, epic, default), following the section structure of the jira-ticket-create skill: Bug Summary, Environment, Steps to Reproduce, Expected and Actual Behavior; Given-When-Then user stories; tasks with a Definition of Done; epics. `v2` is the default `templateVersion`; set `v1` to keep the old sections. Optional placeholders on list or table lines drop only that line.
+- Every ticket description ends with `Ticket template: <version>/<file>` (for example `v1/bug.md`), and the preview shows it. The environments offered when none is named are an editable `environments` list in the config files.
+- `create-ticket` is automatic by default (`ticketCreation.mode: auto`): it reads the request, screenshots and screen recordings, checks existing Jira records (similar tickets, possible duplicate, who worked on them), decides space, type, priority, sprint, application(s), team(s) and people with the evidence for each, and shows one preview to confirm. It asks only when the evidence cannot decide. `mode: ask` keeps the question-by-question flow. New settings: `mode`, `sprint.mode` (replaces `sprint.ask`), `inference.qa`, `media.maxFrames`, `similar.maxResults`.
+- New `scripts/frames.mjs` extracts evenly spaced frames from a screen recording (ffmpeg or the Python package imageio-ffmpeg) so they can be read as images; audio is not analysed.
+
 - New `create-ticket` skill: creates a Jira ticket from the predefined template (`templates/jira/<version>/`), with select-only questions and approval of the draft before anything is created. Configured in `project.json -> ticketCreation` (all optional):
   - priority list per team or space, with hints such as `P1`;
   - current sprint or backlog, showing the active sprint's name;
   - application(s), then backend, frontend, both or general, with developers de-duplicated across applications;
   - optional attachments and a redaction scan.
 - Assignee question: multi-select when several applications or several teams (Backend, Frontend, QA, General) are ticked, single choice for one application and one team; with several people ticked, one parent ticket is created for the general assignee plus one sub-task per person, each assigned to that person (no "main assignee" question).
-- No more template-details question: the skill fills Problem and Environment itself, analyses the request and screenshots into a fuller problem description, and shows it for approval before the ticket is created (`description.elaborate`, default on). The approval question has an "Edit problem summary" option: shorter, original words only, or your own text.
+- No more template-details question: the skill fills Problem and Environment itself, analyses the request and screenshots into a fuller problem description, and shows it for approval before the ticket is created (`description.elaborate`, default on). Steps to reproduce, actual result, expected result and impact are filled from the screenshots, recordings and request (with their source), "To be confirmed" only where nothing supports a line. The approval question has an "Edit description" option for any section: shorter, original words only, or your own text.
 - Priority choices follow the configured list in its order (like Jira's dropdown); without a profile the list lives in `~/.claude/sdlc-core/ticket-creation.json`, editable at any time.
 - `/sdlc-core:create-ticket` runs the same skill from the core plugin, with no edition or profile needed (`claude --plugin-dir <this repo>`); `sdlc redact` now works without a workspace.
 

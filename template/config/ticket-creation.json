@@ -7,13 +7,36 @@
     "priorities.default: priority names in the order shown (empty = all Jira priorities, in Jira's order). priorities.bySpace: a different list for one Jira space.",
     "applications: add or remove projects; each has urlKeywords and teams.backend / teams.frontend / teams.qa. A person is a name, or { \"name\": \"...\", \"email\": \"...\" }.",
     "qa: QA people shared by every application. generalAssignee: optional, adds a General option.",
-    "subtaskWording: wording of the sub-tasks created when several people are ticked. Developers (backend, frontend) get a Fix sub-task, QA gets a Test sub-task; {KEY} is the parent ticket and {issue} its issue name. Edit the text or add a team.",
-    "description.elaborate: true = the skill analyses your request and screenshots, writes a fuller problem description and shows it for approval; false = it uses your words as they are."
+    "subtaskWording: wording of the sub-tasks created when several people work on a ticket. Backend and frontend get a Fix sub-task for a Bug and, through forNonBug, an Implement sub-task for a Story or Task; QA gets a Test sub-task. {KEY} is the parent ticket and {issue} its issue name. Edit the text or add a team.",
+    "description.elaborate: true = the skill analyses your request and screenshots, writes a fuller problem description and shows it for approval; false = it uses your words as they are.",
+    "mode: auto = the skill predicts everything the evidence supports (application, team, assignee, priority, sprint, type) and asks only what it cannot decide, then shows one preview | manual = it asks you every decision as a select-only question, with its prediction marked Recommended. (ask means the same as manual.)",
+    "sprint.mode: follow = decided automatically when mode is auto, asked when mode is manual | ask | auto | current | backlog (fix it whatever mode says).",
+    "inference.qa: when-asked (a QA sub-task only if the request asks to test or verify) | always | never.",
+    "media.maxFrames: frames read from one screen recording (needs ffmpeg). similar.maxResults: existing Jira records read per search.",
+    "environments: the environments offered when the request and screenshots do not name one, in this order (edit freely). The names follow the six environment files of bloomlink-api (core dev/stage/staging, healthcare dev/stage/prod); change them to your own."
   ],
-  "templateVersion": "v1",
+  "mode": "auto",
   "sprint": {
-    "ask": true
+    "mode": "follow"
   },
+  "inference": {
+    "qa": "when-asked"
+  },
+  "media": {
+    "maxFrames": 12
+  },
+  "similar": {
+    "maxResults": 6
+  },
+  "environments": [
+    "Core dev",
+    "Core stage",
+    "Core staging",
+    "Healthcare dev",
+    "Healthcare stage",
+    "Healthcare prod"
+  ],
+  "templateVersion": "v2",
   "description": {
     "elaborate": true
   },
@@ -69,11 +92,19 @@
   "subtaskWording": {
     "backend": {
       "verb": "Fix",
-      "description": "Investigate and fix {issue} on the backend. Details are in {KEY}."
+      "description": "Investigate and fix {issue} on the backend. Details are in {KEY}.",
+      "forNonBug": {
+        "verb": "Implement",
+        "description": "Implement {issue} on the backend. Details are in {KEY}."
+      }
     },
     "frontend": {
       "verb": "Fix",
-      "description": "Investigate and fix {issue} on the frontend. Details are in {KEY}."
+      "description": "Investigate and fix {issue} on the frontend. Details are in {KEY}.",
+      "forNonBug": {
+        "verb": "Implement",
+        "description": "Implement {issue} on the frontend. Details are in {KEY}."
+      }
     },
     "qa": {
       "verb": "Test",
