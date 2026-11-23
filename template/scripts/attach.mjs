@@ -29,23 +29,6 @@ if (!site) die('usage: attach.mjs [--check] --site <url> [--key PROJ-123] <file>
 if (!check && !/^[A-Z][A-Z0-9_]+-\d+$/.test(key || '')) die('--key must be a ticket key such as PROJ-123', 2);
 if (!paths.length) die('no files given', 2);
 
-// Where the token may go.
-let origin;
-try {
-  const u = new URL(site);
-  const host = u.hostname.toLowerCase();
-  const local = host === 'localhost' || host === '127.0.0.1';
-  if (u.protocol !== 'https:' && !(local && u.protocol === 'http:')) die('the site must be an https address', 6);
-  const base = process.env.JIRA_BASE_URL ? new URL(process.env.JIRA_BASE_URL).hostname.toLowerCase() : null;
-  if (base && base !== host) die(`JIRA_BASE_URL (${base}) is not this ticket's site (${host}); refusing to send credentials there`, 6);
-  if (!local && !host.endsWith('.atlassian.net') && base !== host) die(`${host} is not an Atlassian Cloud site; set JIRA_BASE_URL to it to allow uploads`, 6);
-  origin = u.origin;
-} catch (e) {
-  die(`bad --site: ${e.message}`, 2);
-}
-
-const emailEnv = opt('email-env', 'JIRA_EMAIL');
-const tokenEnv = opt('token-env', 'JIRA_API_TOKEN');
 // A variable saved with setx is not visible to a session that was already running, so on Windows fall back to the
 // saved user variables (registry HKCU\Environment). Values are only read here, never printed.
 function savedUserVar(name) {
@@ -55,10 +38,47 @@ function savedUserVar(name) {
   return m ? m[1].trim() : '';
 }
 const credential = (n) => process.env[n] || savedUserVar(n);
+
+// Only variables meant for Jira may be used as the login, so this script cannot be pointed at another secret.
+const emailEnv = opt('email-env', 'JIRA_EMAIL');
+const tokenEnv = opt('token-env', 'JIRA_API_TOKEN');
+for (const n of [emailEnv, tokenEnv]) if (!/^(JIRA|ATLASSIAN)_[A-Z0-9_]+$/.test(n)) die(`${n} is not allowed as a credential variable; use a name starting with JIRA_ or ATLASSIAN_`, 2);
+
+// Where the token may go. JIRA_BASE_URL (saved by setup-jira-upload.ps1) pins it to one site: any other host is refused.
+let origin;
+let pinned = false;
+try {
+  const u = new URL(site);
+  const host = u.hostname.toLowerCase();
+  const local = host === 'localhost' || host === '127.0.0.1';
+  if (u.protocol !== 'https:' && !(local && u.protocol === 'http:')) die('the site must be an https address', 6);
+  const configured = credential('JIRA_BASE_URL');
+  const base = configured ? new URL(configured).hostname.toLowerCase() : null;
+  if (base && base !== host) die(`JIRA_BASE_URL (${base}) is not this ticket's site (${host}); refusing to send credentials there`, 6);
+  if (!local && !host.endsWith('.atlassian.net') && base !== host) die(`${host} is not an Atlassian Cloud site; set JIRA_BASE_URL to it to allow uploads`, 6);
+  pinned = Boolean(base);
+  origin = u.origin;
+} catch (e) {
+  die(`bad --site: ${e.message}`, 2);
+}
+
 const missing = [emailEnv, tokenEnv].filter((n) => !credential(n));
 const auth = missing.length ? null : `Basic ${Buffer.from(`${credential(emailEnv)}:${credential(tokenEnv)}`).toString('base64')}`;
 
-const TEXT = /\.(md|txt|json|csv|log)$/i;
+// Credential-type files are never uploaded, whatever the ticket says.
+const CREDENTIAL_FILE = /^(\.env(\..*)?|id_(rsa|dsa|ecdsa|ed25519)(\.pub)?|\.npmrc|\.netrc|credentials(\..*)?)$|\.(pem|key|pfx|p12|ppk|kdbx)$/i;
+const SCAN_LIMIT = 20 * 1024 * 1024;
+// A file is text when its first bytes hold no NUL and decode as UTF-8; every such file is scanned, whatever its extension.
+function looksLikeText(path) {
+  const fd = fs.openSync(path, 'r');
+  try {
+    const buf = Buffer.alloc(8192);
+    const n = fs.readSync(fd, buf, 0, buf.length, 0);
+    const head = buf.subarray(0, n);
+    if (head.includes(0)) return false;
+    try { new TextDecoder('utf-8', { fatal: true }).decode(head, { stream: true }); return true; } catch { return false; }
+  } finally { fs.closeSync(fd); }
+}
 const MIME = { '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.gif': 'image/gif', '.webp': 'image/webp', '.mp4': 'video/mp4', '.mov': 'video/quicktime', '.webm': 'video/webm', '.mkv': 'video/x-matroska', '.pdf': 'application/pdf', '.txt': 'text/plain', '.md': 'text/markdown', '.json': 'application/json', '.csv': 'text/csv', '.log': 'text/plain', '.zip': 'application/zip', '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation' };
 const maxBytes = Number(opt('max-mb', 0)) > 0 ? Number(opt('max-mb')) * 1024 * 1024 : 0;
 
@@ -71,10 +91,14 @@ const infos = paths.map((p) => {
   info.size = st.size;
   if (!st.size) return { ...info, problem: 'file is empty' };
   if (maxBytes && st.size > maxBytes) return { ...info, problem: `over the ${opt('max-mb')} MB limit` };
-  if (TEXT.test(path)) {
-    const hits = redactionHits(fs.readFileSync(path, 'utf8'), null);
-    if (hits.length) info.flagged = hits.length;
-  }
+  if (CREDENTIAL_FILE.test(info.file)) return { ...info, problem: 'credential-type file (key, .env, .npmrc ...): never uploaded' };
+  try {
+    if (looksLikeText(path)) {
+      const text = st.size > SCAN_LIMIT ? fs.readFileSync(path).subarray(0, SCAN_LIMIT).toString('utf8') : fs.readFileSync(path, 'utf8');
+      const hits = redactionHits(text, null);
+      if (hits.length) info.flagged = hits.length;
+    }
+  } catch { return { ...info, problem: 'file could not be read' }; }
   return info;
 });
 const publicInfo = (i) => ({ file: i.file, size: i.size, ...(i.flagged ? { flagged: i.flagged } : {}), ...(i.problem ? { problem: i.problem } : {}) });
@@ -93,7 +117,7 @@ async function checkOnly() {
     }
   }
   const ok = credentials === 'ok' && !infos.filter(blocked).length;
-  return { obj: { ok, site: origin, credentials, files: infos.map(publicInfo) }, code: ok ? 0 : credentials === 'ok' ? 5 : 3 };
+  return { obj: { ok, site: origin, siteBound: pinned ? 'yes (JIRA_BASE_URL)' : 'no: set JIRA_BASE_URL (setup-jira-upload.ps1) to bind the token to this site', credentials, files: infos.map(publicInfo) }, code: ok ? 0 : credentials === 'ok' ? 5 : 3 };
 }
 
 async function uploadAll() {

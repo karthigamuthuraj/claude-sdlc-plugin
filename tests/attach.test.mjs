@@ -150,12 +150,12 @@ test('create-ticket skill: waits for the upload set-up instead of creating the t
   const skill = readFileSync(join(dirname(SCRIPT), '..', 'skills', 'create-ticket', 'SKILL.md'), 'utf8');
   assert.match(skill, /do not create the ticket yet/);
   assert.match(skill, /no answer or "no preference" means stop and wait/);
-  assert.match(skill, /Read-Host "Atlassian API token" -AsSecureString/);
+  assert.match(skill, /setup-jira-upload.ps1/);
 });
 
 test('attach: on Windows, saved user variables are used when the session lacks them', { skip: process.platform !== 'win32' }, async () => {
-  const E = 'ZZ_ATTACH_TEST_EMAIL';
-  const T = 'ZZ_ATTACH_TEST_TOKEN';
+  const E = 'JIRA_ATTACH_TEST_EMAIL';
+  const T = 'JIRA_ATTACH_TEST_TOKEN';
   const KEY = 'HKCU\\Environment';
   const reg = (args) => spawnSync('reg', args, { encoding: 'utf8' });
   try {
@@ -168,6 +168,42 @@ test('attach: on Windows, saved user variables are used when the session lacks t
   } finally {
     reg(['delete', KEY, '/v', E, '/f']);
     reg(['delete', KEY, '/v', T, '/f']);
+  }
+});
+
+test('attach: only Jira-named variables can be the login', async () => {
+  reset();
+  const r = await run(['--check', '--site', SITE, '--token-env', 'AWS_SECRET_ACCESS_KEY', png], { ...withCreds(), AWS_SECRET_ACCESS_KEY: 'x' });
+  assert.equal(r.status, 2, r.stdout);
+  assert.match(r.json.error, /not allowed as a credential variable/);
+  assert.equal(calls.length, 0);
+});
+
+test('attach: credential-type files are refused and any text file is scanned, whatever its extension', async () => {
+  reset();
+  const envFile = join(dir, '.env');
+  const noExt = join(dir, 'notes');
+  writeFileSync(envFile, 'KEY=value');
+  writeFileSync(noExt, 'call me at jo@corp.com about the visit');
+  const r = await run(['--check', '--site', SITE, envFile, noExt, png], withCreds());
+  assert.equal(r.status, 5, r.stdout);
+  const byName = Object.fromEntries(r.json.files.map((f) => [f.file, f]));
+  assert.match(byName['.env'].problem, /credential-type file/);
+  assert.ok(byName['notes'].flagged > 0, 'a text file without a known extension is scanned');
+  assert.ok(!byName['screenshot.png'].problem && !byName['screenshot.png'].flagged);
+  const up = await run(['--site', SITE, '--key', 'PROJ-9', '--allow-flagged', envFile], withCreds());
+  assert.equal(up.status, 7, 'a credential-type file is never uploaded, even with --allow-flagged');
+  assert.equal(calls.filter((c) => c.method === 'POST').length, 0);
+});
+
+test('attach: --check says whether the token is bound to the saved site', async () => {
+  const bound = await run(['--check', '--site', SITE, png], withCreds());
+  assert.match(bound.json.siteBound, /^yes/);
+  // On a Windows machine that has saved its own JIRA_BASE_URL the "not bound" case cannot be shown, so skip that half.
+  const saved = process.platform === 'win32' && spawnSync('reg', ['query', 'HKCU\\Environment', '/v', 'JIRA_BASE_URL'], { encoding: 'utf8' }).status === 0;
+  if (!saved) {
+    const unbound = await run(['--check', '--site', SITE, png], { ...baseEnv(), JIRA_EMAIL: EMAIL, JIRA_API_TOKEN: TOKEN });
+    assert.match(unbound.json.siteBound, /^no/);
   }
 });
 
